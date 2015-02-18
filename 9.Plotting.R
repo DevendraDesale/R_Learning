@@ -59,8 +59,43 @@ ggplot(diamonds, aes(y=price, x = cut)) + geom_jitter() + geom_violin()
 
 ggplot(diamonds, aes(y=price, x = cut)) + geom_jitter() + geom_violin(alpha = 1/3)
 
-install.packages("ggthemes")
-library("ggthemes")
+# Line Graphs
+ggplot(economics, aes(x=date, y=pop)) + geom_line()
+
+# A common task for line plots is displaying a metric over
+# the course of a year for many years. 
+# To prepare the economics data we will use Wickham’s lubridate package,
+# which has convenient functions for manipulating dates”
+require(lubridate)
+
+# Extract year and month
+economics$year <- year(economics$date)
+
+#the argument to month will return the name of the month not number
+economics$month <- month(economics$date, label= TRUE)
+
+# subset the data
+# the which function returns the indices of observations where the
+# tested condition was TRUE”
+econ2000 <- economics[which(economics$year >= 2000), ]
+                       
+# load the scales package for better axis formatting
+require(scales)
+# build the foundation of the plot
+g <- ggplot(econ2000, aes(x=month, y=pop))
+# add lines color coded and grouped by year
+# the group aesthetic breaks the data into separate groups
+g <- g + geom_line(aes(color=factor(year), group=year))
+# name the legend "Year"
+g <- g + scale_color_discrete(name="Year")
+# format the y axis
+g <- g + scale_y_continuous(labels=comma)
+# add a title and axis labels
+g <- g + labs(title="Population Growth", x="Month", y="Population")
+# plot the graph
+g
+
+require("ggthemes")
 ## save plot in variable.
 
 g <- ggplot(diamonds,aes(x=carat, y= price, color = cut)) + geom_point()
@@ -81,7 +116,7 @@ ggplot(data.frame(x = rnorm(100)),aes (sample = x)) + stat_qq() + geom_abline()
 
 head(tips)
 # To see multiple visualization. use GGally
-install.packages("GGally")
+require(GGally)
 GGally::ggpairs(tips)
 
 
