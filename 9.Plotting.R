@@ -1,6 +1,8 @@
-data(diamonds,package = "ggplot2")
-head(diamonds)
 
+require(ggplot2)
+data(diamonds)
+head(diamonds)
+hist(diamonds$carat,main = 'Carat hist', xlab = 'Carat')
 
 #Scatterploat
 plot(price ~ carat, data = diamonds)
