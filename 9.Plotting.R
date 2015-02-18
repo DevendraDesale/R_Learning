@@ -36,9 +36,9 @@ g + geom_point(aes(color = cut), shape = 1, alpha = 1/3)
 #usign formula to braeak use ~
 
 # making multiple graphs per color
-g + geom_point(aes(color= cut)) + facet_wrap(~color)
+g + geom_point(aes(color= color)) + facet_wrap(~color)
 
-g + geom_point(aes(color= cut)) + facet_wrap(clarity~color)
+g + geom_point(aes(color= color)) + facet_wrap(clarity~color)
 ggplot(diamonds, aes(x = price)) + geom_histogram() + facet_wrap(~cut)
 ggplot(diamonds, aes(x = price, fill = cut, color = cut)) +
   geom_histogram(position = position_dodge())
