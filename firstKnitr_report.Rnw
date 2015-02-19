@@ -1,0 +1,11 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in,bottom=.5in,includehead,includefoot]{geometry}
+\begin{document}
+Getting started with the latex and knitr report generation.
+<<echo=TRUE>>=
+1 + 1
+@
+
+
+
+\end{document}
