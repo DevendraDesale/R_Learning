@@ -172,8 +172,86 @@ require(plyr)
 Aid_90s00sPlr <- join(x = Aid_90s,y=Aid_00s,by = c('Country.Name','Program.Name'))
 head(Aid_90s00sPlr)
 
+# first figure out the names of the data.frames
+frameNames <- str_sub(string = theDataFiles, start = 12, end = 18)
+# build an empty list
+frameList <- vector("list", length(frameNames))
+names(frameList) <- frameNames
+# add each data.frame into the list
+for (a in frameNames)
+{
+  frameList[[a]] <- eval(parse(text = a))
+}
+
+head(frameList[[1]])
+
+## Having all the data.frames in a list allows us to iterate through the list, 
+## joining all the elements together (or applying any function to the elements iteratively). 
+## Rather than using a loop, we use the Reduce function to speed up the operation.
+allAid <- Reduce(function(...){
+  join(..., by = c('Country.Name','Program.Name'))
+}, frameList)
+
+require(useful)
+## you can select any part of data(consider it as a rectangle, you can select its portions.)
+corner(allAid, c = 15)
+
+bottomleft(allAid,c = 15)
+
+## using data.table also you can merge two tables.
+require(data.table)
+
+dt90 <- data.table(Aid_90s, key = c('Country.Name','Program.Name'))
+dt00 <- data.table(Aid_00s, key = c('Country.Name','Program.Name'))
+
+## Lets join them
+dt00s90s <- dt90[dt00]
+
+## for join we need to specify the keys for the data.tables,
+## which we did while creating data.table
+
 #white  format -> long cast format 
 library(reshape2)
+
+## for machine understanding and analytics perpose we need to have
+## we are extracting the country-program-year entry with the dollar amount stored in one column.
+melt90 <- melt(Aid_90s,id.vars = c('Country.Name','Program.Name'), variable.name = 'Year',
+               value.name = 'Dollars')
+
+tail(melt90)
+
+
+## now we can use faceting, which will allow us to quickly see
+## and understand the funding for each program over the time
+require(scales)
+## remove 'FY' from year to get numeric year.
+melt90$Year <- as.numeric(str_sub(melt90$Year,start = 3, end = 6))
+
+## Aggregate the data so we have yearly numbers by program
+meltAgg <- aggregate(Dollars ~ Program.Name + Year, data = melt90,sum,na.rm = TRUE)
+## subsetting the program name to be fitted in plots.
+meltAgg$Program.Name <- str_sub(meltAgg$Program.Name,start = 1,end = 10)
+
+ggplot(meltAgg, aes(x = Year, y = Dollars)) + 
+  geom_line(aes(group = Program.Name)) +
+  facet_wrap(~Program.Name) +
+  scale_x_continuous(breaks = seq(from = 2000, to = 2009, by = 2)) +
+  theme(axis.text.x  = element_text(angle = 90, vjust = 1, hjust = 0)) +
+  scale_y_continuous(labels = multiple_format(extra = dollar, multiple = 'B'))
+
+## The function for this is dcast, and it has trickier arguments than melt.
+## The first is the data to be used, in our case melt00. 
+## The second argument is a formula where the left side 
+## specifies the columns that should remain columns and 
+## the right side specifies the columns that should become row names.
+## The third argument is the column (as a character) that holds the
+## values to be populated into the new columns representing the unique 
+## values of the right side of the formula argument.
+
+cast90 <-dcast(melt90, Country.Name + Program.Name ~ Year, value.var = 'Dollars')
+
+head(cast90)
+
 head(airquality)
 airMelt <- melt(airquality, id = c("Month","Day"))
 airMelt
