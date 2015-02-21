@@ -1,0 +1,139 @@
+---
+title: "Probability Distribution"
+output: html_document
+---
+
+This is about the probability distributions, gonna test some basic functions in R which are
+used for the generators. 
+
+Most common distribution is bell shaped/ normal distribution.
+
+```{r}
+?rnorm
+# Generating 10 random numbers with 0 mean and 1 sd by default.
+rnorm(n=10)
+
+# You can change them by passing parameters.
+rnorm(n=10,mean = 100, sd = 10)
+
+```
+
+In reality, where data points are more than 100. It is not feasible to see dnorm output and inference from it. Practically you would like to generate plots to gain insights.
+
+
+```{r}
+randData <- rnorm(n=3000)
+randDen <- dnorm(randData)
+require(ggplot2)
+ggplot(data.frame(x = randData, y = randDen)) + aes(x=x,y=y) +
+  geom_point() + labs(x = 'Random normal variable',y='Density')
+
+```
+
+
+To calculate the density of probability distribution use dnorm.
+```{r}
+rand10 <- rnorm(10)
+dnorm(rand10)
+```
+ Similarly, pnorm calculates the distribution of the normal distribution; that is, the cumulative probability that a given number, or smaller number, occurs.
+ by default it will left-tail.
+```{r}
+?pnorm
+pnorm(10)
+
+```
+
+
+```{r}
+# a few things happen with this first line of code
+# the idea is to build a ggplot2 object that we can build upon later
+# that is why it is saved to p
+# we take randNorm and randDensity and put them into a data.frame
+# we declare the x and y axes outside of any other function
+# this just gives more flexibility
+# we add lines with geom_line()
+# x- and y-axis labels with labs(x="x", y="Density")
+p <- ggplot(data.frame(x=randData, y=randDen)) + aes(x=x, y=y) +
+geom_line() + labs(x="x", y="Density")
+
+# plotting p will print a nice distribution
+# to create a shaded area under the curve we first calculate that area
+# generate a sequence of numbers going from the far left to -1
+neg1Seq <- seq(from=min(randData), to=-1, by=.1)
+
+# build a data.frame of that sequence as x
+# the distribution values for that sequence as y
+lessThanNeg1 <- data.frame(x=neg1Seq, y=dnorm(neg1Seq))
+
+head(lessThanNeg1)
+
+# combine this with endpoints at the far left and far right
+# the height is 0
+lessThanNeg1 <- rbind(c(min(randData), 0), lessThanNeg1, c(max(lessThanNeg1$x), 0))
+
+# use that shaded region as a polygon
+p + geom_polygon(data=lessThanNeg1, aes(x=x, y=y))
+
+# create a similar sequence going from -1 to 1
+neg1Pos1Seq <- seq(from=-1, to=1, by=.1)
+
+# build a data.frame of that sequence as x
+# the distribution values for that sequence as y
+neg1To1 <- data.frame(x=neg1Pos1Seq, y=dnorm(neg1Pos1Seq))
+head(neg1To1)
+
+neg1To1 <- rbind(c(min(neg1To1$x), 0), neg1To1,c(max(neg1To1$x), 0))
+ # use that shaded region as a polygon
+p + geom_polygon(data=neg1To1, aes(x=x, y=y))
+
+```
+to ge  the cumulative probability  a shaded region it is displayed as a single point along the y-axis. use following piece of code.
+```{r}
+randProb <- pnorm(randData)
+ggplot(data.frame(x = randData,y=randProb)) + aes(x = x, y = y) + 
+  geom_point() + labs(x = 'Random Normal Variables', y = 'Probability')
+```
+
+
+The opposite of pnorm is qnorm, given commutative it returns the quantile.
+```{r}
+qnorm(pnorm(rand10))
+all.equal(rand10,qnorm(pnorm(rand10)))
+```
+
+Poisson is another important distribution. As λ grows large the Poisson distribution begins to resemble the normal distribution.
+
+```{r}
+pois1 <- rpois(n=10000, lambda=1)
+pois2 <- rpois(n=10000, lambda=2)
+pois5 <- rpois(n=10000, lambda=5)
+pois10 <- rpois(n=10000, lambda=10)
+pois20 <- rpois(n=10000, lambda=20)
+pois <- data.frame(Lambda.1=pois1, Lambda.2=pois2, 
+                       Lambda.5=pois5, Lambda.10=pois10, Lambda.20=pois20)
+# load reshape2 package to melt the data to make it easier to plot
+require(reshape2)
+# melt the data into a long format
+pois <- melt(data=pois, variable.name="Lambda", value.name="x")
+# load the stringr package to help clean up the new column name
+require(stringr)
+# clean up the Lambda to just show the value for that lambda
+pois$Lambda <- as.factor(as.numeric(str_extract(string=pois$Lambda, pattern="\\d+")))
+head(pois)
+
+tail(pois)
+
+ggplot(pois, aes(x= x)) + geom_histogram(binwidth = 1)+
+  facet_wrap(~Lambda) + ggtitle('Probability Mass function')
+```
+
+Another, perhaps more compelling, way to visualize this convergence to normality is within overlaid density plots.
+
+```{r}
+ggplot(pois, aes(x = x)) + 
+  geom_density(aes(group = Lambda,color = Lambda, fill =Lambda), adjust = 4, alpha= 1/2) +
+  scale_color_discrete() + scale_fill_discrete() + ggtitle('Probability Mass Distribution')
+```
+
+
