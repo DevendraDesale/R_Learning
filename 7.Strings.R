@@ -1,6 +1,7 @@
 library("stringr")
 #Concates string 
 paste("Hello", "Bob", "and other",sep= "/")
+## paste is vectorised.
 paste(c("Hello", "Bob", "and other"), c("charlie","Bob","David"))
 paste("Hello", c("Bob","David","Charlie"))
 
@@ -23,6 +24,9 @@ library("stringr")
 theTimes <- str_split(warTimes, pattern = "(ACAEA)|-", n = 2)
 
 head(theTimes)
+
+theTimes <- str_split(string = warTimes,pattern = '(ACAEA|-)',n = 2)
+which(str_detect(string = warTimes, pattern = '-'))
 
 #Grab the first element only
 theStart <- sapply(theTimes, function(x)x[1])
